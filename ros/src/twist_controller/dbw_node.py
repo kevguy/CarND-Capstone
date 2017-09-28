@@ -48,22 +48,40 @@ class DBWNode(object):
         max_steer_angle = rospy.get_param('~max_steer_angle', 8.)
 
         self.steer_pub = rospy.Publisher('/vehicle/steering_cmd',
-                                         SteeringCmd, queue_size=1)
+                                         SteeringCmd, queue_size=5)
         self.throttle_pub = rospy.Publisher('/vehicle/throttle_cmd',
-                                            ThrottleCmd, queue_size=1)
+                                            ThrottleCmd, queue_size=5)
         self.brake_pub = rospy.Publisher('/vehicle/brake_cmd',
-                                         BrakeCmd, queue_size=1)
+                                         BrakeCmd, queue_size=5)
 
         # TODO: Create `TwistController` object
         # self.controller = TwistController(<Arguments you wish to provide>)
-        self.controller = Controller()
+        self.controller = Controller(vehicle_mass,
+                                    fuel_capacity,
+                                    brake_deadband,
+                                    decel_limit,
+                                    accel_limit,
+                                    wheel_radius,
+                                    wheel_base,
+                                    steer_ratio,
+                                    max_lat_accel,
+                                    max_steer_angle)
 
         # TODO: Subscribe to all the topics you need to
         rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         rospy.Subscriber('/final_waypoints', Lane, self.wp_cb)
 
+        rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cb)
+        rospy.Subscriber('/current_velocity', TwistStamped, self.vel_cb)
+        rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_cb)
+
         self.current_pose = None
         self.next_waypoints = None
+
+        self.twist_cmd = None
+        self.current_velocity = None
+        self.dbw_enabled = True
+        self.time_last_sample = rospy.rostime.get_time()
 
         self.loop()
 
@@ -72,6 +90,16 @@ class DBWNode(object):
 
     def wp_cb(self, msg):
         self.next_waypoints = msg
+
+    def twist_cb(self, msg):
+        self.twist_cmd = msg
+
+    def vel_cb(self, msg):
+        self.current_velocity = msg
+
+    def dbw_cb(self, msg):
+        if msg != None:
+            self.dbw_enabled = msg.data
 
     def loop(self):
         rate = rospy.Rate(50) # 50Hz
@@ -85,8 +113,18 @@ class DBWNode(object):
             #                                                     <any other argument you need>)
             # if <dbw is enabled>:
             #   self.publish(throttle, brake, steer)
-            if self.current_pose is not None and self.next_waypoints is not None:
-                self.publish(0.5, 0.0, 0.0)
+            time_elapsed = rospy.rostime.get_time() - self.time_last_sample
+            self.time_last_sample = rospy.rostime.get_time()
+
+            if self.current_pose is not None and self.next_waypoints is not None and self.twist_cmd is not None and self.current_velocity is not None:
+                throttle, brake, steer = self.controller.control(
+                    self.twist_cmd.twist.linear.x,
+                    self.twist_cmd.twist.angular.z,
+                    self.current_velocity.twist.linear.x,
+                    time_elapsed,
+                    self.dbw_enabled)
+                    
+                self.publish(throttle, brake, steer)
                 # pass
 
             rate.sleep()
