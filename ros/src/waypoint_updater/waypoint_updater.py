@@ -43,8 +43,6 @@ class WaypointUpdater(object):
         self.current_pose = None
         self.next_waypoints = None
 
-        rospy.logerr("Initialized WaypointUpdater\n")
-
         rospy.spin()
 
     def pose_cb(self, msg):

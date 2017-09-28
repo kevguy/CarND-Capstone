@@ -29,7 +29,7 @@ class Controller(object):
     def control(self, *args, **kwargs):
         """
         arguments:
-         - proposed linear velocity
+         - proposed linear velocityerr
          - proposed angular velocity (radians)
          - current linear velocity
          - elapsed time
@@ -52,9 +52,9 @@ class Controller(object):
         throttle = max(velocity, 0.0)
         brake = math.fabs(min(0.0, velocity))
 
-        if DEBUG_MODE:
-            rospy.logerr('final velocity: {}'.format(velocity))
-            rospy.logerr('final steering: {}'.format(steer))
+        # if DEBUG_MODE:
+        #     rospy.logerr('final velocity: {}'.format(velocity))
+        #     rospy.logerr('final steering: {}'.format(steer))
 
         # return 1., 0., 0.
         return throttle, brake, steer
