@@ -68,13 +68,6 @@ class DBWNode(object):
                                     max_steer_angle)
 
         # TODO: Subscribe to all the topics you need to
-        rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
-        rospy.Subscriber('/final_waypoints', Lane, self.wp_cb)
-
-        rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cb)
-        rospy.Subscriber('/current_velocity', TwistStamped, self.vel_cb)
-        rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_cb)
-
         self.current_pose = None
         self.next_waypoints = None
 
@@ -82,6 +75,13 @@ class DBWNode(object):
         self.current_velocity = None
         self.dbw_enabled = True
         self.time_last_sample = rospy.rostime.get_time()
+
+        rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
+        rospy.Subscriber('/final_waypoints', Lane, self.wp_cb)
+
+        rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cb)
+        rospy.Subscriber('/current_velocity', TwistStamped, self.vel_cb)
+        rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_cb)
 
         self.loop()
 
@@ -98,7 +98,7 @@ class DBWNode(object):
         self.current_velocity = msg
 
     def dbw_cb(self, msg):
-        if msg != None:
+        if msg is not None:
             self.dbw_enabled = msg.data
 
     def loop(self):
@@ -116,15 +116,16 @@ class DBWNode(object):
             time_elapsed = rospy.rostime.get_time() - self.time_last_sample
             self.time_last_sample = rospy.rostime.get_time()
 
-            if self.current_pose is not None and self.next_waypoints is not None and self.twist_cmd is not None and self.current_velocity is not None:
+            if self.current_pose is not None and self.twist_cmd is not None and self.current_velocity is not None:
                 throttle, brake, steer = self.controller.control(
                     self.twist_cmd.twist.linear.x,
                     self.twist_cmd.twist.angular.z,
                     self.current_velocity.twist.linear.x,
                     time_elapsed,
                     self.dbw_enabled)
-                    
-                self.publish(throttle, brake, steer)
+
+                if self.dbw_enabled == True:
+                    self.publish(throttle, brake, steer)
                 # pass
 
             rate.sleep()

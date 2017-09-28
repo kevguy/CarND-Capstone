@@ -43,23 +43,23 @@ class WaypointUpdater(object):
         self.current_pose = None
         self.next_waypoints = None
 
-        rospy.logerr("What's up bitch")
+        rospy.logerr("Initialized WaypointUpdater\n")
 
         rospy.spin()
 
     def pose_cb(self, msg):
         # TODO: Implement
-        rospy.logerr('got pose')
+        rospy.logerr('WaypointUpdater: Pose Received')
         self.current_pose = msg.pose
-        self.publish_waypoints()
+        # self.publish_waypoints()
         # pass
 
     def waypoints_cb(self, waypoints):
         # TODO: Implement
         # only do this once
-        rospy.logerr('got waypoints')
+        rospy.logerr('WaypointUpdater: Waypoints Received')
         if self.next_waypoints is None:
-            rospy.logerr('waypoints are none')
+            rospy.logerr('WaypointUpdater: Updating Waypoints')
             self.next_waypoints = waypoints.waypoints
             self.publish_waypoints()
         # pass
