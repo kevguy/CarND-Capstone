@@ -100,7 +100,7 @@ class TLDetector(object):
             int: index of the closest waypoint in self.waypoints
 
         """
-		#self.waypoints, list of waypoints on the road
+	#self.waypoints, list of waypoints on the road
         if self.waypoints is None:
             return
 
@@ -110,15 +110,15 @@ class TLDetector(object):
         posePositionX = pose.position.x #position x coordinate of pose input
         posePositionY = pose.position.y #position y coordinate of pose input
 
-		#basic for loop for distance calculation between points, 
-		#to find closest waypoint to the pose inputted, according to its X and Y coordinates.
+	#basic for loop for distance calculation between points, 
+	#to find closest waypoint to the pose inputted, according to its X and Y coordinates.
         for index, waypoint in enumerate(self.waypoints):
             waypointPositionX = waypoint.pose.pose.position.x
             waypointPositionY = waypoint.pose.pose.position.y
             distanceCalculated = math.sqrt((posePositionX - waypointPositionX)**2 + (posePositionY - waypointPositionY)**2)
             if (distanceCalculated < minimumDistance): 
                 minimumDistance = distanceCalculated
-				minimumDistanceIndex = index  
+		minimumDistanceIndex = index  
 
         # returns the index of the closest waypoint
         return minimumDistanceIndex
