@@ -100,8 +100,28 @@ class TLDetector(object):
             int: index of the closest waypoint in self.waypoints
 
         """
-        #TODO implement
-        return 0
+		#self.waypoints, list of waypoints on the road
+        if self.waypoints is None:
+            return
+
+        minimumDistance = 99999
+        minimumDistanceIndex = None
+
+        posePositionX = pose.position.x #position x coordinate of pose input
+        posePositionY = pose.position.y #position y coordinate of pose input
+
+		#basic for loop for distance calculation between points, 
+		#to find closest waypoint to the pose inputted, according to its X and Y coordinates.
+        for index, waypoint in enumerate(self.waypoints):
+            waypointPositionX = waypoint.pose.pose.position.x
+            waypointPositionY = waypoint.pose.pose.position.y
+            distanceCalculated = math.sqrt((posePositionX - waypointPositionX)**2 + (posePositionY - waypointPositionY)**2)
+            if (distanceCalculated < minimumDistance): 
+                minimumDistance = distanceCalculated
+				minimumDistanceIndex = index  
+
+        # returns the index of the closest waypoint
+        return minimumDistanceIndex
 
 
     def project_to_image_plane(self, point_in_world):
